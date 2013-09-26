@@ -46,6 +46,8 @@ server_single_request(int accept_fd)
 {
 	int fd;
 
+	
+
 	/* 
 	 * The server thread will always want to be doing the accept.
 	 * That main thread will want to hand off the new fd to the
@@ -54,12 +56,20 @@ server_single_request(int accept_fd)
 	fd = server_accept(accept_fd);
 	client_process(fd);
 
+	printf("fd is: %d\n", fd);
+
 	return;
 }
 
 void
 server_multiple_requests(int accept_fd)
 {
+	int fd;
+
+	fd = server_accept(accept_fd);
+	client_process(fd);
+
+	printf("fd is: %d\n", fd);
 	return;
 }
 
@@ -103,8 +113,7 @@ typedef enum {
 	SERVER_TYPE_THREAD_POOL,
 } server_type_t;
 
-int
-main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
 	server_type_t server_type;
 	short int port;
@@ -135,10 +144,23 @@ main(int argc, char *argv[])
 
 	switch(server_type) {
 	case SERVER_TYPE_ONE:
+		printf("Type 1 server!\n");
 		server_single_request(accept_fd);
 		break;
 	case SERVER_TYPE_SINGLET:
-		server_multiple_requests(accept_fd);
+		printf("Type 2 server!\n");
+
+		pthread_t thread1;
+
+		int ret1;
+
+		printf("Make thread do stuff\n");
+
+		while(1) pthread_create(&thread1, NULL, server_multiple_requests, (void *) accept_fd);
+
+		//pthread_join(thread1, NULL);
+
+		//server_multiple_requests(accept_fd);
 		break;
 	case SERVER_TYPE_PROCESS:
 		server_processes(accept_fd);
